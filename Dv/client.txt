@@ -1,0 +1,45 @@
+RegisterCommand("dv", function(source, args)
+    -- Check if the player has provided a vehicle ID or if they're in a vehicle
+    if #args > 0 or IsPedInAnyVehicle(PlayerPedId(), false) then
+        local vehicle
+        if #args > 0 then
+            -- Get the vehicle by its ID if provided
+            local vehicleId = tonumber(args[1])
+            vehicle = NetToVeh(vehicleId)
+        else
+            -- Get the vehicle the player is currently in
+            vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+        end
+
+        if DoesEntityExist(vehicle) then
+            -- Delete the vehicle
+            DeleteVehicle(vehicle)
+            if NetworkHasControlOfEntity(vehicle) then
+                NetworkRequestControlOfEntity(vehicle)
+                SetEntityAsNoLongerNeeded(vehicle)
+                DeleteEntity(vehicle)
+            end
+
+            -- Inform the player
+            TriggerEvent("chat:addMessage", {
+                color = {255, 0, 0},
+                multiline = true,
+                args = {"Vehicle Deleted", "The vehicle has been successfully deleted."}
+            })
+        else
+            -- Vehicle not found
+            TriggerEvent("chat:addMessage", {
+                color = {255, 0, 0},
+                multiline = true,
+                args = {"Vehicle Not Found", "The specified vehicle does not exist."}
+            })
+        end
+    else
+        -- Player is not in a vehicle and no vehicle ID provided
+        TriggerEvent("chat:addMessage", {
+            color = {255, 0, 0},
+            multiline = true,
+            args = {"Error", "You are not in a vehicle and no vehicle ID was provided."}
+        })
+    end
+end)
